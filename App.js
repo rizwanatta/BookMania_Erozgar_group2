@@ -1,11 +1,29 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, Text, View } from 'react-native';
+import { firebase } from './src/services/firebasHelper';
+
 
 export default function App() {
+
+
+ onButtonPressed = ()=>{
+  firebase
+  .firestore()
+  .collection('users')
+  .doc('374')
+  .set({'name': 'saleem', 
+  'kam': 'coder', 'present': false, 'rollNumber': 32});
+ }
+
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
+      <Text>ALl good with project on EXPO</Text>
       <StatusBar style="auto" />
+      <Button 
+      title={'test firebase'}
+      onPress={onButtonPressed}
+      />
     </View>
   );
 }
