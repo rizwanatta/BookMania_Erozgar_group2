@@ -1,6 +1,6 @@
 import firebase from "firebase";
 import { useState, useEffect, useRef } from "react";
-import { Camera } from "expo-camera";
+import { Camera, CameraType } from "expo-camera";
 import { View, ScrollView, Image, TextInput } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Button } from "../../components/button";
@@ -12,6 +12,7 @@ function Login({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [photoUri, setPhotoUri] = useState("");
+  const [camType, setCamType] = useState(CameraType.back);
 
   const [permission, requestPermission] = Camera.useCameraPermissions();
 
@@ -32,6 +33,14 @@ function Login({ navigation }) {
   const __takePicture = async () => {
     const photo = await cameraRef.current.takePictureAsync();
     setPhotoUri(photo.uri);
+  };
+
+  const __flipCameraType = () => {
+    if (camType === CameraType.back) {
+      setCamType(CameraType.front);
+    } else {
+      setCamType(CameraType.back);
+    }
   };
 
   return (
@@ -58,11 +67,12 @@ function Login({ navigation }) {
 
         <Camera
           style={{ width: "100%", height: 300 }}
-          type={"back"}
+          type={camType}
           ref={cameraRef}
         />
 
         <Button title={"Capture image"} onPress={__takePicture} />
+        <Button title={"Flip Camera"} onPress={__flipCameraType} />
 
         <Image style={{ width: 100, height: 100 }} source={{ uri: photoUri }} />
       </View>
