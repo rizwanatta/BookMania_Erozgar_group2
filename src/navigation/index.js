@@ -8,6 +8,7 @@ import { Register } from "../screens/register/register";
 import { Login } from "../screens/login/login";
 import { Home } from "../screens/home/home";
 import { Profile } from "../screens/profile/profile";
+import { Location } from "../screens/location/location";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,6 +50,7 @@ function Nav() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Location" component={Location} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
         <Stack.Screen name="Home" component={HomeNav} />
