@@ -10,13 +10,26 @@ import {
   Image,
 } from "react-native";
 import { Button } from "../components/button";
+import { Loading } from "../components/loading";
 import { FontAwesome5 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 
 import { firebase } from "../services/firebasHelper";
+import { getUniqueBookName } from "../services/help";
 
 function AddNewBookModal({ show, onClosePressed }) {
   const [image, setImage] = useState(null);
+
+  // form states for the books
+  const [bookName, setBookName] = useState("");
+  const [bookAuthor, setBookAuthor] = useState("");
+  const [bookDate, setBookDate] = useState("");
+
+  const [imageDownloadUrl, setImageDownloadUrl] = useState("");
+
+  // this is for loading indicator
+
+  const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
@@ -25,8 +38,6 @@ function AddNewBookModal({ show, onClosePressed }) {
       allowsEditing: false,
       quality: 1,
     });
-
-    console.log(result);
 
     if (!result.cancelled) {
       setImage(result.uri);
@@ -38,17 +49,58 @@ function AddNewBookModal({ show, onClosePressed }) {
 
     // blob making code
     let img = await fetch(image);
+
+    let uniqueBookName = getUniqueBookName(bookName);
+
     let imgBlob = await img.blob();
 
     storageBookRef
-      .child("1")
+      .child(uniqueBookName)
       .put(imgBlob)
       .then((response) => {
-        console.log(response);
+        firebase
+          .storage()
+          .ref("books/" + uniqueBookName)
+          .getDownloadURL()
+          .then((downloadResponse) => {
+            setImageDownloadUrl(downloadResponse);
+          })
+          .catch((downloadError) => {
+            console.log(downloadError);
+          });
       })
       .catch((error) => {
         console.log(error.message);
       });
+  };
+
+  const uploadBook = () => {
+    setLoading(true);
+
+    console.log(bookAuthor, bookName, bookDate, imageDownloadUrl);
+
+    // this will get me the user id
+    const userId = firebase.auth().currentUser.uid;
+
+    firebase
+      .firestore()
+      .collection("books")
+      .doc(userId)
+      .set({
+        bookAuthor,
+        bookName,
+        bookDate,
+        imageDownloadUrl,
+      })
+      .then((response) => {
+        setLoading(false);
+        alert("your book got uploaded");
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
+
+    console.log(userId);
   };
 
   return (
@@ -63,11 +115,23 @@ function AddNewBookModal({ show, onClosePressed }) {
         <View style={styles.formView}>
           <Text style={styles.fromTitle}>Add Your Favourite Book</Text>
 
-          <TextInput placeholder="Book Name" style={styles.inputCon} />
+          <TextInput
+            placeholder="Book Name"
+            onChangeText={setBookName}
+            style={styles.inputCon}
+          />
 
-          <TextInput placeholder="Book Author" style={styles.inputCon} />
+          <TextInput
+            placeholder="Book Author"
+            onChangeText={setBookAuthor}
+            style={styles.inputCon}
+          />
 
-          <TextInput placeholder="Book Date" style={styles.inputCon} />
+          <TextInput
+            placeholder="Book Date"
+            onChangeText={setBookDate}
+            style={styles.inputCon}
+          />
 
           <TouchableOpacity
             onPress={() => {
@@ -103,8 +167,14 @@ function AddNewBookModal({ show, onClosePressed }) {
           )}
         </View>
 
-        <Button onPress={onClosePressed} title={"close"} />
+        <Button onPress={uploadBook} title={"upload book"} />
+
+        <View style={{ marginVertical: 10 }}>
+          <Button onPress={onClosePressed} title={"close"} />
+        </View>
       </View>
+
+      {loading && <Loading />}
     </Modal>
   );
 }
@@ -114,10 +184,10 @@ export { AddNewBookModal };
 const styles = StyleSheet.create({
   mainContainer: {
     backgroundColor: "white",
-    height: "80%",
+    height: "90%",
   },
   formView: {
-    height: "90%",
+    height: "80%",
     padding: 10,
   },
   fromTitle: {
