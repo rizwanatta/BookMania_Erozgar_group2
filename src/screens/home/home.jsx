@@ -63,7 +63,12 @@ function Home() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
-        <FlatList data={books} renderItem={renderItem} />
+        <FlatList
+          onRefresh={() => fetchBookfromFirebase()}
+          refreshing={false}
+          data={books}
+          renderItem={renderItem}
+        />
 
         <FloatingAction
           showBackground={false}
